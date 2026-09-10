@@ -1,0 +1,290 @@
+# Google AdSense 集成指南
+
+## 概述
+
+NimbPDF已成功集成Google AdSense，用于在网站上展示广告以产生收入。
+
+## 已添加的配置
+
+### 1. index.html
+
+已在`<head>`部分添加以下内容：
+
+```html
+<!-- Google AdSense -->
+<meta name="google-adsense-account" content="ca-pub-4601044168466549">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4601044168466549"
+ crossorigin="anonymous"></script>
+```
+
+**配置详情：**
+- **客户端ID**: `ca-pub-4601044168466549`
+- **验证Meta标签**: `<meta name="google-adsense-account" content="ca-pub-4601044168466549">`
+- **脚本加载方式**: 异步加载（async），不影响页面性能
+- **跨域设置**: `crossorigin="anonymous"`
+
+## 在React组件中使用AdSense
+
+### 创建AdSense广告组件
+
+创建一个可重用的AdSense广告组件：
+
+```tsx
+// src/components/AdSenseAd.tsx
+import { useEffect, useRef } from 'react';
+
+declare global {
+  interface Window {
+    adsbygoogle: any[];
+  }
+}
+
+interface AdSenseAdProps {
+  adSlot: string;
+  adFormat?: string;
+  style?: React.CSSProperties;
+}
+
+export function AdSenseAd({ adSlot, adFormat = 'auto', style }: AdSenseAdProps) {
+  const adRef = useRef<HTMLModElement>(null);
+
+  useEffect(() => {
+    try {
+      if (window.adsbygoogle) {
+        window.adsbygoogle.push({});
+      }
+    } catch (e) {
+      console.error('AdSense error:', e);
+    }
+  }, []);
+
+  return (
+    <ins
+      ref={adRef}
+      className="adsbygoogle"
+      style={{ display: 'block', ...style }}
+      data-ad-client="ca-pub-4601044168466549"
+      data-ad-slot={adSlot}
+      data-ad-format={adFormat}
+      data-full-width-responsive="true"
+    />
+  );
+}
+```
+
+### 在页面中使用
+
+```tsx
+// 在工具页面中使用
+import { AdSenseAd } from '../components/AdSenseAd';
+
+export function ToolPage() {
+  return (
+    <div>
+      {/* 工具内容 */}
+      <div className="tool-content">
+        {/* ... */}
+      </div>
+
+      {/* 广告位置1：工具下方 */}
+      <div className="my-8">
+        <AdSenseAd 
+          adSlot="1234567890" 
+          style={{ minHeight: '250px' }}
+        />
+      </div>
+
+      {/* 更多内容 */}
+    </div>
+  );
+}
+```
+
+## 广告位置建议
+
+### 1. 工具页面
+
+**位置1：工具操作区域下方**
+```tsx
+<div className="my-8">
+  <AdSenseAd adSlot="TOOL_PAGE_AD_SLOT_1" />
+</div>
+```
+
+**位置2：侧边栏（桌面端）**
+```tsx
+<aside className="hidden lg:block">
+  <AdSenseAd adSlot="SIDEBAR_AD_SLOT" />
+</aside>
+```
+
+### 2. 首页
+
+**位置：工具网格下方**
+```tsx
+<section className="my-12">
+  <AdSenseAd adSlot="HOMEPAGE_AD_SLOT" />
+</section>
+```
+
+### 3. 博客文章
+
+**位置：文章内容中间**
+```tsx
+<article>
+  <div className="prose">
+    {/* 文章内容 */}
+  </div>
+  
+  <div className="my-8">
+    <AdSenseAd adSlot="BLOG_AD_SLOT" />
+  </div>
+</article>
+```
+
+## 广告单元类型
+
+### 1. 自适应广告单元（推荐）
+
+```tsx
+<AdSenseAd 
+  adSlot="1234567890"
+  adFormat="auto"
+  style={{ minHeight: '250px' }}
+/>
+```
+
+**优点：**
+- 自动适应不同屏幕尺寸
+- Google自动优化广告展示
+- 最佳用户体验
+
+### 2. 展示广告
+
+```tsx
+<AdSenseAd 
+  adSlot="1234567890"
+  adFormat="auto"
+  style={{ 
+    display: 'inline-block',
+    width: '728px',
+    height: '90px'
+  }}
+/>
+```
+
+### 3. 信息流广告
+
+```tsx
+<AdSenseAd 
+  adSlot="1234567890"
+  adFormat="fluid"
+  style={{ minHeight: '200px' }}
+/>
+```
+
+## 广告放置最佳实践
+
+### ✅ 推荐位置
+
+1. **工具页面**
+   - 工具操作区域下方
+   - 侧边栏（桌面端）
+   - 内容底部
+
+2. **首页**
+   - 工具网格下方
+   - 页脚上方
+
+3. **博客文章**
+   - 文章开头（可选）
+   - 文章中间
+   - 文章结尾
+
+4. **定价页面**
+   - 定价表下方
+   - FAQ部分下方
+
+### ❌ 避免位置
+
+1. **工具操作区域内**
+   - 不要干扰用户使用工具
+   - 不要在上传区域附近
+
+2. **导航栏**
+   - 不要影响导航体验
+
+3. **模态框内**
+   - 模态框内不应显示广告
+
+4. **过于密集**
+   - 每页最多3-4个广告单元
+   - 保持合理的间距
+
+## 测试AdSense
+
+### 1. 本地测试
+
+在开发环境中，AdSense广告可能不会立即显示。这是正常的，因为：
+- Google需要时间验证网站
+- 新账户需要审核
+- 本地环境可能不被识别
+
+### 2. 生产环境测试
+
+部署到生产环境后：
+
+1. **登录AdSense账户**
+   - 访问 https://www.google.com/adsense/
+   - 检查网站状态
+
+2. **验证网站**
+   - Google会验证网站内容
+   - 确保网站符合AdSense政策
+
+3. **创建广告单元**
+   - 在AdSense后台创建广告单元
+   - 获取广告单元ID
+   -  systematic
+   - 在代码中使用这些ID
+
+### 3. 检查广告是否显示
+
+打开浏览器开发者工具：
+- **Console**: 检查AdSense脚本是否加载成功
+- **Network**: 查看是否有AdSense相关的网络请求
+- **Elements**: 检查`<ins>`标签是否被正确渲染
+
+## AdSense政策合规
+
+### ✅ 必须遵守
+
+1. **内容政策**
+   - 网站必须有原创、有价值的内容
+   - 不能有违规内容（暴力、成人内容等）
+
+2. **流量来源**
+   - 不能有虚假流量
+   - 不能通过欺诈手段获取点击
+
+3. **广告展示**
+   - 不能误导用户点击广告
+   - 不能隐藏广告
+   - 不能强制用户观看广告
+
+4. **隐私政策**
+   - 必须有隐私政策页面
+   - 必须说明使用cookies和广告
+
+### ❌ 禁止行为
+
+1. **点击自己的广告**
+2. **要求他人点击广告**
+3. **使用自动化工具点击广告**
+4. **在禁止的内容上展示广告**
+
+## 收入优化建议
+
+### 1. 广告位置优化
+
+- 使用A/B测试找到最佳广告位置
